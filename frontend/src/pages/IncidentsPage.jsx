@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import { AlertTriangle } from "lucide-react";
@@ -6,42 +7,43 @@ import SubmitButton from "../components/SubmitButton";
 
 export const IncidentsPage = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const canCreate = user?.perfil === "MOTORISTA" || user?.perfil === "ADMIN";
 
-  const [ocorrencias, setOcorrencias] = useState([]);
-  const [veiculos, setVeiculos] = useState([]);
   const [tipo, setTipo] = useState("Atraso");
   const [descricao, setDescricao] = useState("");
   const [veiculoId, setVeiculoId] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  const carregar = async () => {
-    const [ocRes, vRes] = await Promise.all([
-      api.get("/ocorrencias"),
-      api.get("/veiculos"),
-    ]);
-    setOcorrencias(ocRes.data);
-    setVeiculos(vRes.data);
-    if (vRes.data.length > 0 && !veiculoId) {
-      setVeiculoId(String(vRes.data[0].id));
-    }
-  };
-
+  const incidentsQuery = useQuery({
+    queryKey: ["incidents"],
+    queryFn: async () => (await api.get("/ocorrencias")).data,
+  });
+  const vehiclesQuery = useQuery({
+    queryKey: ["vehicles"],
+    queryFn: async () => (await api.get("/veiculos")).data,
+  });
+  const createIncidentMutation = useMutation({
+    mutationFn: (incident) => api.post("/ocorrencias", incident),
+    onSuccess: () => {
+      setDescricao("");
+      queryClient.invalidateQueries({ queryKey: ["incidents"] });
+    },
+  });
+  const ocorrencias = incidentsQuery.data || [];
+  const veiculos = vehiclesQuery.data || [];
   useEffect(() => {
-    carregar();
-  }, []);
+    if (veiculos.length > 0 && !veiculoId) {
+      setVeiculoId(String(veiculos[0].id));
+    }
+  }, [veiculos, veiculoId]);
 
-  const registrar = async (e) => {
+  const registrar = (e) => {
     e.preventDefault();
-    setLoading(true);
-    await api.post("/ocorrencias", {
+    createIncidentMutation.mutate({
       tipo,
       descricao,
       veiculoId: veiculoId ? veiculoId : null,
     });
-    setDescricao("");
-    setLoading(false);
-    carregar();
   };
 
   return (
@@ -66,6 +68,11 @@ export const IncidentsPage = () => {
               {ocorrencias.length} registro(s)
             </span>
           </div>
+          {(incidentsQuery.isError || vehiclesQuery.isError) && (
+            <p className="text-sm text-red-600">
+              Erro ao carregar as ocorrências ou os veículos.
+            </p>
+          )}
           {ocorrencias.length === 0 ? (
             <p className="text-sm text-slate-600">
               Nenhuma ocorrência registrada até o momento.
@@ -143,7 +150,15 @@ export const IncidentsPage = () => {
                   placeholder="Informe o ocorrido e o impacto previsto..."
                 />
               </div>
-              <SubmitButton text="Registrar Ocorrência" loading={loading} />
+              {createIncidentMutation.isError && (
+                <p className="text-sm text-red-600">
+                  Erro ao registrar a ocorrência.
+                </p>
+              )}
+              <SubmitButton
+                text="Registrar Ocorrência"
+                loading={createIncidentMutation.isPending}
+              />
             </form>
           </div>
         )}

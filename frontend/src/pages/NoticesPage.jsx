@@ -1,40 +1,40 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import SubmitButton from "../components/SubmitButton";
 
 export const NoticesPage = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const isAdmin = user?.perfil === "ADMIN";
 
-  const [avisos, setAvisos] = useState([]);
   const [titulo, setTitulo] = useState("");
   const [mensagem, setMensagem] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  const carregar = async () => {
-    const { data } = await api.get("/avisos");
-    setAvisos(data);
-  };
+  const noticesQuery = useQuery({
+    queryKey: ["notices"],
+    queryFn: async () => (await api.get("/avisos")).data,
+  });
+  const createNoticeMutation = useMutation({
+    mutationFn: (notice) => api.post("/avisos", notice),
+    onSuccess: () => {
+      setTitulo("");
+      setMensagem("");
+      queryClient.invalidateQueries({ queryKey: ["notices"] });
+    },
+  });
+  const deleteNoticeMutation = useMutation({
+    mutationFn: (id) => api.delete(`/avisos/${id}`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notices"] }),
+  });
 
-  useEffect(() => {
-    carregar();
-  }, []);
-
-  const publicar = async (e) => {
+  const avisos = noticesQuery.data || [];
+  const publicar = (e) => {
     e.preventDefault();
-    setLoading(true);
-    await api.post("/avisos", { titulo, mensagem });
-    setTitulo("");
-    setMensagem("");
-    carregar();
-    setLoading(false);
+    createNoticeMutation.mutate({ titulo, mensagem });
   };
-
-  const excluir = async (id) => {
-    await api.delete(`/avisos/${id}`);
-    carregar();
-  };
+  const excluir = (id) => deleteNoticeMutation.mutate(id);
 
   return (
     <div>
@@ -56,6 +56,13 @@ export const NoticesPage = () => {
               {avisos.length} aviso(s)
             </span>
           </div>
+          {(noticesQuery.isError ||
+            createNoticeMutation.isError ||
+            deleteNoticeMutation.isError) && (
+            <p className="text-sm text-red-600">
+              Erro ao carregar ou atualizar os avisos.
+            </p>
+          )}
           {avisos.length === 0 ? (
             <p className="text-sm text-slate-600">
               Nenhum aviso publicado no momento.
@@ -117,7 +124,10 @@ export const NoticesPage = () => {
                   placeholder="Descreva os detalhes do aviso..."
                 />
               </div>
-              <SubmitButton text="Publicar Aviso" loading={loading} />
+              <SubmitButton
+                text="Publicar Aviso"
+                loading={createNoticeMutation.isPending}
+              />
             </form>
           </div>
         )}

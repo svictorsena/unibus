@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import SubmitButton from "../components/SubmitButton";
@@ -7,9 +8,7 @@ import { Eye, EyeClosed } from "lucide-react";
 export const ProfileSettings = () => {
   const { user } = useAuth();
 
-  const [universidades, setUniversidades] = useState([]);
   const [toast, setToast] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -27,6 +26,16 @@ export const ProfileSettings = () => {
   const isUniversitario = user?.perfil === "UNIVERSITARIO";
   const isAdmin = user?.perfil === "ADMIN";
   const isMotorista = user?.perfil === "MOTORISTA";
+  const universitiesQuery = useQuery({
+    queryKey: ["universities"],
+    queryFn: async () => (await api.get("/universidades")).data,
+    enabled: isUniversitario,
+  });
+  const updateProfileMutation = useMutation({
+    mutationFn: ({ endpoint, payload }) =>
+      api.put(`/${endpoint}/${user.id}`, payload),
+  });
+  const universidades = universitiesQuery.data || [];
 
   const notify = (msg, bad = false) => {
     setToast({ msg, bad });
@@ -51,21 +60,6 @@ export const ProfileSettings = () => {
     }
   }, [user]);
 
-  useEffect(() => {
-    const carregarUniversidades = async () => {
-      try {
-        const res = await api.get("/universidades");
-        setUniversidades(res.data);
-      } catch {
-        notify("Erro ao carregar universidades.", true);
-      }
-    };
-
-    if (isUniversitario) {
-      carregarUniversidades();
-    }
-  }, [isUniversitario]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -75,8 +69,6 @@ export const ProfileSettings = () => {
     }
 
     try {
-      setLoading(true);
-
       const payload = {
         nome: form.nome.trim(),
         email: form.email.trim(),
@@ -92,9 +84,12 @@ export const ProfileSettings = () => {
         payload.senha = form.senha;
       }
 
-      if (isUniversitario) await api.put(`/universitarios/${user.id}`, payload);
-      if (isAdmin) await api.put(`/admins/${user.id}`, payload);
-      if (isMotorista) await api.put(`/motoristas/${user.id}`, payload);
+      const endpoint = isUniversitario
+        ? "universitarios"
+        : isAdmin
+          ? "admins"
+          : "motoristas";
+      await updateProfileMutation.mutateAsync({ endpoint, payload });
 
       setForm((f) => ({
         ...f,
@@ -108,8 +103,6 @@ export const ProfileSettings = () => {
       notify("Perfil atualizado com sucesso!");
     } catch (err) {
       notify(err.response?.data?.message || "Erro ao atualizar perfil.", true);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -215,6 +208,11 @@ export const ProfileSettings = () => {
                       </option>
                     ))}
                   </select>
+                  {universitiesQuery.isError && (
+                    <p className="mt-1 text-sm text-red-600">
+                      Erro ao carregar universidades.
+                    </p>
+                  )}
                 </div>
               </>
             )}
@@ -294,7 +292,10 @@ export const ProfileSettings = () => {
               </div>
             </div>
 
-            <SubmitButton text="Salvar alterações" loading={loading} />
+            <SubmitButton
+              text="Salvar alterações"
+              loading={updateProfileMutation.isPending}
+            />
           </form>
         </div>
 

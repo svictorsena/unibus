@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import DotsJumping from "../components/DotsJumping";
@@ -12,47 +13,54 @@ export const RoutesQueryPage = () => {
   const [universidadeId, setUniversidadeId] = useState(
     user?.universidadeId || 1,
   );
-  const [universidades, setUniversidades] = useState([]);
-  const [rotas, setRotas] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [consultaManual, setConsultaManual] = useState(null);
+
+  const universitiesQuery = useQuery({
+    queryKey: ["universities"],
+    queryFn: async () => (await api.get("/universidades")).data,
+  });
+  const universidades = universitiesQuery.data || [];
 
   useEffect(() => {
-    api.get("/universidades").then((res) => {
-      setUniversidades(res.data);
-      if (!user?.universidadeId && res.data.length > 0) {
-        setUniversidadeId(res.data[0].id);
-      }
-    });
-  }, [user]);
-
-  const carregarMinhaRota = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get(`/rotas/minha-rota?data=${hojeISO}`);
-      setRotas(res.data ? res.data : null);
-    } finally {
-      setLoading(false);
+    if (!user?.universidadeId && universidades.length > 0) {
+      setUniversidadeId(universidades[0].id);
     }
-  };
+  }, [user, universidades]);
 
-  const consultarManual = async (e) => {
-    if (e) e.preventDefault();
-    setLoading(true);
-    try {
-      const res = await api.get(
-        `/rotas/consulta?data=${dataConsulta}&universidadeId=${universidadeId}`,
+  const automaticRouteQuery = useQuery({
+    queryKey: ["my-route", hojeISO],
+    queryFn: async () => {
+      const { data } = await api.get(`/rotas/minha-rota?data=${hojeISO}`);
+      return data || null;
+    },
+    enabled: mode === "auto",
+  });
+  const manualRouteQuery = useQuery({
+    queryKey: [
+      "route-lookup",
+      consultaManual?.data,
+      consultaManual?.universidadeId,
+    ],
+    queryFn: async () => {
+      const { data } = await api.get(
+        `/rotas/consulta?data=${consultaManual.data}&universidadeId=${consultaManual.universidadeId}`,
       );
-      setRotas(res.data ? res.data : null);
-    } finally {
-      setLoading(false);
-    }
-  };
+      return data || null;
+    },
+    enabled: mode === "manual" && Boolean(consultaManual),
+  });
+  const rotas =
+    mode === "manual" && consultaManual
+      ? manualRouteQuery.data
+      : automaticRouteQuery.data;
+  const loading =
+    (mode === "manual" && consultaManual && manualRouteQuery.isFetching) ||
+    (mode === "auto" && automaticRouteQuery.isFetching);
 
-  useEffect(() => {
-    if (mode === "auto") {
-      carregarMinhaRota();
-    }
-  }, [mode]);
+  const consultarManual = (e) => {
+    e.preventDefault();
+    setConsultaManual({ data: dataConsulta, universidadeId });
+  };
 
   return (
     <div>
@@ -133,6 +141,13 @@ export const RoutesQueryPage = () => {
             Consultar rota
           </button>
         </form>
+      )}
+      {(universitiesQuery.isError ||
+        (mode === "auto" && automaticRouteQuery.isError) ||
+        (mode === "manual" && manualRouteQuery.isError)) && (
+        <p className="mb-3 text-sm text-red-600">
+          Erro ao consultar os dados de rota.
+        </p>
       )}
       {loading ? (
         <div className="card">

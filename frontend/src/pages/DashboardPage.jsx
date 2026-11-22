@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Bus, GraduationCap, Route as RouteIcon } from 'lucide-react';
 import SectionHeading from '../components/SectionHeading';
@@ -18,48 +18,62 @@ const dateLabel = (date) => new Date(date).toLocaleDateString('pt-BR');
 
 export const DashboardPage = () => {
   const { user } = useAuth();
-
-  const [minhaRota, setMinhaRota] = useState([]);
-  const [rotasDia, setRotasDia] = useState([]);
-  const [veiculos, setVeiculos] = useState([]);
-  const [universidades, setUniversidades] = useState([]);
-  const [avisos, setAvisos] = useState([]);
-  const [loading, setLoading] = useState(true);
-
   const hojeISO = new Date().toISOString().split('T')[0];
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const [avisosRes, veicRes, uniRes] = await Promise.all([
-          api.get('/avisos'),
-          api.get('/veiculos'),
-          api.get('/universidades'),
-        ]);
+  const noticesQuery = useQuery({
+    queryKey: ['notices'],
+    queryFn: async () => (await api.get('/avisos')).data,
+  });
+  const vehiclesQuery = useQuery({
+    queryKey: ['vehicles'],
+    queryFn: async () => (await api.get('/veiculos')).data,
+  });
+  const universitiesQuery = useQuery({
+    queryKey: ['universities'],
+    queryFn: async () => (await api.get('/universidades')).data,
+  });
+  const routesQuery = useQuery({
+    queryKey: [
+      user?.perfil === 'ADMIN' ? 'routes' : 'my-route',
+      hojeISO,
+    ],
+    queryFn: async () => {
+      const endpoint =
+        user?.perfil === 'ADMIN'
+          ? `/rotas?data=${hojeISO}`
+          : `/rotas/minha-rota?data=${hojeISO}`;
+      return (await api.get(endpoint)).data;
+    },
+    enabled: Boolean(user),
+  });
 
-        setAvisos(avisosRes.data);
-        setVeiculos(veicRes.data);
-        setUniversidades(uniRes.data);
-
-        if (user?.perfil === 'ADMIN') {
-          const rotasRes = await api.get(`/rotas?data=${hojeISO}`);
-          setRotasDia(rotasRes.data);
-        } else {
-          const minhaRotaRes = await api.get(`/rotas/minha-rota?data=${hojeISO}`);
-          if (minhaRotaRes.data) {
-            setMinhaRota(minhaRotaRes.data);
-          }
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    load();
-  }, [user, hojeISO]);
+  const avisos = noticesQuery.data || [];
+  const veiculos = vehiclesQuery.data || [];
+  const universidades = universitiesQuery.data || [];
+  const rotasDia = user?.perfil === 'ADMIN' ? routesQuery.data || [] : [];
+  const minhaRota =
+    user?.perfil !== 'ADMIN' && routesQuery.data ? routesQuery.data : [];
+  const loading =
+    noticesQuery.isLoading ||
+    vehiclesQuery.isLoading ||
+    universitiesQuery.isLoading ||
+    routesQuery.isLoading;
 
   if (loading) {
     return <p className="text-sm text-[#BEB5BF]">Carregando informações...</p>;
+  }
+
+  if (
+    noticesQuery.isError ||
+    vehiclesQuery.isError ||
+    universitiesQuery.isError ||
+    routesQuery.isError
+  ) {
+    return (
+      <p className="text-sm text-red-600">
+        Erro ao carregar as informações do painel.
+      </p>
+    );
   }
 
   const avisosRecentes = avisos.slice(0, 3);

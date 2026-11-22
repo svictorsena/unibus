@@ -1,17 +1,12 @@
 import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "../services/api";
 import SubmitButton from "../components/SubmitButton";
 
 export const RegistrationsPage = () => {
+  const queryClient = useQueryClient();
   const [tab, setTab] = useState("universitarios");
-  const [universitarios, setUniversitarios] = useState([]);
-  const [universidades, setUniversidades] = useState([]);
-  const [veiculos, setVeiculos] = useState([]);
-  const [motoristas, setMotoristas] = useState([]);
   const [toast, setToast] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  
 
   const [uniForm, setUniForm] = useState({
     nome: "",
@@ -35,34 +30,69 @@ export const RegistrationsPage = () => {
     setTimeout(() => setToast(null), 3200);
   };
 
-  const carregarTudo = async () => {
-    const [uRes, instRes, vRes, mRes] = await Promise.all([
-      api.get("/universitarios"),
-      api.get("/universidades"),
-      api.get("/veiculos"),
-      api.get("/motoristas"),
-    ]);
-    setUniversitarios(uRes.data);
-    setUniversidades(instRes.data);
-    setVeiculos(vRes.data);
-    setMotoristas(mRes.data);
-    if (instRes.data.length > 0 && !uniForm.universidadeId) {
-      setUniForm((f) => ({ ...f, universidadeId: String(instRes.data[0].id) }));
-    }
-  };
+  const studentsQuery = useQuery({
+    queryKey: ["students"],
+    queryFn: async () => (await api.get("/universitarios")).data,
+  });
+  const universitiesQuery = useQuery({
+    queryKey: ["universities"],
+    queryFn: async () => (await api.get("/universidades")).data,
+  });
+  const vehiclesQuery = useQuery({
+    queryKey: ["vehicles"],
+    queryFn: async () => (await api.get("/veiculos")).data,
+  });
+  const driversQuery = useQuery({
+    queryKey: ["drivers"],
+    queryFn: async () => (await api.get("/motoristas")).data,
+  });
+  const universitarios = studentsQuery.data || [];
+  const universidades = universitiesQuery.data || [];
+  const veiculos = vehiclesQuery.data || [];
+  const motoristas = driversQuery.data || [];
 
   useEffect(() => {
-    carregarTudo();
-  }, []);
+    if (universidades.length > 0 && !uniForm.universidadeId) {
+      setUniForm((form) => ({
+        ...form,
+        universidadeId: String(universidades[0].id),
+      }));
+    }
+  }, [universidades, uniForm.universidadeId]);
+
+  const createRegistrationMutation = useMutation({
+    mutationFn: ({ endpoint, payload }) => api.post(`/${endpoint}`, payload),
+    onSuccess: () => {
+      ["students", "universities", "vehicles", "drivers"].forEach((key) =>
+        queryClient.invalidateQueries({ queryKey: [key] }),
+      );
+    },
+  });
+  const deleteRegistrationMutation = useMutation({
+    mutationFn: ({ endpoint, id }) => api.delete(`/${endpoint}/${id}`),
+    onSuccess: () => {
+      ["students", "universities", "vehicles", "drivers"].forEach((key) =>
+        queryClient.invalidateQueries({ queryKey: [key] }),
+      );
+      notify("Registro removido.");
+    },
+    onError: () =>
+      notify(
+        "Não foi possível excluir: registro vinculado a rotas ativas.",
+        true,
+      ),
+  });
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    setLoading(true);
     try {
       if (tab === "universitarios") {
-        await api.post("/universitarios", {
-          ...uniForm,
-          universidadeId: uniForm.universidadeId,
+        await createRegistrationMutation.mutateAsync({
+          endpoint: "universitarios",
+          payload: {
+            ...uniForm,
+            universidadeId: uniForm.universidadeId,
+          },
         });
         setUniForm({
           ...uniForm,
@@ -72,15 +102,21 @@ export const RegistrationsPage = () => {
           telefone: "",
         });
       } else if (tab === "universidades") {
-        await api.post("/universidades", instForm);
+        await createRegistrationMutation.mutateAsync({
+          endpoint: "universidades",
+          payload: instForm,
+        });
         setInstForm({ nome: "", localizacao: "" });
       } else if (tab === "veiculos") {
-        await api.post("/veiculos", {
-          ...veicForm,
-          capacidade: Number(veicForm.capacidade),
-          motoristaId: veicForm.motoristaId
-            ? veicForm.motoristaId
-            : null,
+        await createRegistrationMutation.mutateAsync({
+          endpoint: "veiculos",
+          payload: {
+            ...veicForm,
+            capacidade: Number(veicForm.capacidade),
+            motoristaId: veicForm.motoristaId
+              ? veicForm.motoristaId
+              : null,
+          },
         });
         setVeicForm({
           nome: "",
@@ -90,30 +126,21 @@ export const RegistrationsPage = () => {
           motoristaId: "",
         });
       } else if (tab === "motoristas") {
-        await api.post("/motoristas", motForm);
+        await createRegistrationMutation.mutateAsync({
+          endpoint: "motoristas",
+          payload: motForm,
+        });
         setMotForm({ nome: "", email: "", telefone: "" });
       }
-      await carregarTudo();
-      setLoading(false);
       notify("Registro cadastrado com sucesso!");
     } catch (err) {
-      setLoading(false);
       notify(err.response?.data?.message || "Erro ao cadastrar.", true);
     }
   };
 
-  const handleDelete = async (endpoint, id) => {
+  const handleDelete = (endpoint, id) => {
     if (!window.confirm("Deseja realmente excluir este registro?")) return;
-    try {
-      await api.delete(`/${endpoint}/${id}`);
-      await carregarTudo();
-      notify("Registro removido.");
-    } catch {
-      notify(
-        "Não foi possível excluir: registro vinculado a rotas ativas.",
-        true,
-      );
-    }
+    deleteRegistrationMutation.mutate({ endpoint, id });
   };
 
   const tabs = [
@@ -157,6 +184,14 @@ export const RegistrationsPage = () => {
       <div className="page-layout registrations-layout">
         <div className="card">
           <h3 className="mb-3 text-base font-bold">Registros Cadastrados</h3>
+          {(studentsQuery.isError ||
+            universitiesQuery.isError ||
+            vehiclesQuery.isError ||
+            driversQuery.isError) && (
+            <p className="mb-3 text-sm text-red-600">
+              Erro ao carregar os registros.
+            </p>
+          )}
           <div className="overflow-x-auto">
             {tab === "universitarios" && (
               <table className="w-full border-collapse text-left text-sm">
@@ -500,7 +535,10 @@ export const RegistrationsPage = () => {
               </>
             )}
 
-            <SubmitButton text="Salvar cadastro" loading={loading} />
+            <SubmitButton
+              text="Salvar cadastro"
+              loading={createRegistrationMutation.isPending}
+            />
           </form>
         </div>
       </div>

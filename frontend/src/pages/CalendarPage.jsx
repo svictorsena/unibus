@@ -1,40 +1,40 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import SubmitButton from "../components/SubmitButton";
 
 export const CalendarPage = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const isAdmin = user?.perfil === "ADMIN";
 
-  const [eventos, setEventos] = useState([]);
   const [data, setData] = useState(new Date().toISOString().split("T")[0]);
   const [descricao, setDescricao] = useState("");
   const [tipo, setTipo] = useState("DIA_LETIVO");
-  const [loading, setLoading] = useState(false);
 
-  const carregar = async () => {
-    const res = await api.get("/calendario");
-    setEventos(res.data);
-  };
+  const eventosQuery = useQuery({
+    queryKey: ["calendar"],
+    queryFn: async () => (await api.get("/calendario")).data,
+  });
+  const addEventMutation = useMutation({
+    mutationFn: (event) => api.post("/calendario", event),
+    onSuccess: () => {
+      setDescricao("");
+      queryClient.invalidateQueries({ queryKey: ["calendar"] });
+    },
+  });
+  const deleteEventMutation = useMutation({
+    mutationFn: (id) => api.delete(`/calendario/${id}`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["calendar"] }),
+  });
 
-  useEffect(() => {
-    carregar();
-  }, []);
-
-  const adicionar = async (e) => {
+  const eventos = eventosQuery.data || [];
+  const adicionar = (e) => {
     e.preventDefault();
-    setLoading(true);
-    await api.post("/calendario", { data, descricao, tipo });
-    setDescricao("");
-    setLoading(false);
-    carregar();
+    addEventMutation.mutate({ data, descricao, tipo });
   };
-
-  const excluir = async (id) => {
-    await api.delete(`/calendario/${id}`);
-    carregar();
-  };
+  const excluir = (id) => deleteEventMutation.mutate(id);
 
   return (
     <div>
@@ -53,6 +53,9 @@ export const CalendarPage = () => {
       >
         <div className="card">
           <h3 className="mb-3 text-base font-bold">Datas Programadas</h3>
+          {eventosQuery.isError && (
+            <p className="text-sm text-red-600">Erro ao carregar o calendário.</p>
+          )}
           <div className="divide-y divide-slate-200">
             {eventos.map((ev) => (
               <div
@@ -136,7 +139,15 @@ export const CalendarPage = () => {
                   placeholder="Ex.: Semana de provas finais"
                 />
               </div>
-              <SubmitButton text="Salvar no Calendário" loading={loading} />
+              {(addEventMutation.isError || deleteEventMutation.isError) && (
+                <p className="text-sm text-red-600">
+                  Erro ao atualizar o calendário.
+                </p>
+              )}
+              <SubmitButton
+                text="Salvar no Calendário"
+                loading={addEventMutation.isPending}
+              />
             </form>
           </div>
         )}

@@ -1,45 +1,52 @@
 import React, { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "../services/api";
 import SubmitButton from "../components/SubmitButton";
 
 export const ManageRoutesPage = () => {
+  const queryClient = useQueryClient();
   const hojeISO = new Date().toISOString().split("T")[0];
 
   const [dataOperacao, setDataOperacao] = useState(hojeISO);
   const [rotas, setRotas] = useState([]);
-  const [universidades, setUniversidades] = useState([]);
-  const [motoristas, setMotoristas] = useState([]);
 
   const [selectedUni, setSelectedUni] = useState(0);
   const [selectedVeh, setSelectedVeh] = useState(0);
   const [toast, setToast] = useState(null);
-  const [saving, setSaving] = useState(false);
 
   const notify = (msg, bad = false) => {
     setToast({ msg, bad });
     setTimeout(() => setToast(null), 3500);
   };
 
-  const carregarDados = async (dataStr) => {
-    const [rotasRes, uniRes, motRes] = await Promise.all([
-      api.get(`/rotas?data=${dataStr}`),
-      api.get("/universidades"),
-      api.get("/motoristas"),
-    ]);
-
-    setRotas(rotasRes.data);
-    setUniversidades(uniRes.data);
-    setMotoristas(motRes.data);
-
-    if (uniRes.data.length > 0 && !selectedUni)
-      setSelectedUni(uniRes.data[0].id);
-    if (rotasRes.data.length > 0 && !selectedVeh)
-      setSelectedVeh(rotasRes.data[0].veiculo.id);
-  };
+  const routesQuery = useQuery({
+    queryKey: ["routes", dataOperacao],
+    queryFn: async () => (await api.get(`/rotas?data=${dataOperacao}`)).data,
+  });
+  const universitiesQuery = useQuery({
+    queryKey: ["universities"],
+    queryFn: async () => (await api.get("/universidades")).data,
+  });
+  const driversQuery = useQuery({
+    queryKey: ["drivers"],
+    queryFn: async () => (await api.get("/motoristas")).data,
+  });
+  const universidades = universitiesQuery.data || [];
+  const motoristas = driversQuery.data || [];
 
   useEffect(() => {
-    carregarDados(dataOperacao);
-  }, [dataOperacao]);
+    if (!routesQuery.data) return;
+    setRotas(routesQuery.data);
+    if (routesQuery.data.length > 0 && !selectedVeh) {
+      setSelectedVeh(routesQuery.data[0].veiculo.id);
+    }
+  }, [routesQuery.data, selectedVeh]);
+
+  useEffect(() => {
+    if (universidades.length > 0 && !selectedUni) {
+      setSelectedUni(universidades[0].id);
+    }
+  }, [universidades, selectedUni]);
 
   const moverParada = (veiculoId, index, dir) => {
     setRotas((prev) =>
@@ -106,29 +113,32 @@ export const ManageRoutesPage = () => {
     );
   };
 
-  const salvarNoBanco = async () => {
-    setSaving(true);
-
-    try {
-      const payload = {
-        dataOperacao,
-        rotas: rotas.map((r) => ({
-          veiculoId: r.veiculo.id,
-          motoristaId: r.motorista?.id || null,
-          horarioPrevisto: r.horarioPrevisto || "18:30",
-          universidadeIds: r.paradas.map((p) => p.universidade.id),
-        })),
-      };
-
+  const saveRoutesMutation = useMutation({
+    mutationFn: async (payload) => {
       const { data } = await api.post("/rotas/configurar", payload);
+      return data;
+    },
+    onSuccess: (data) => {
       setRotas(data);
-
+      queryClient.invalidateQueries({ queryKey: ["routes"] });
+      queryClient.invalidateQueries({ queryKey: ["my-route"] });
+      queryClient.invalidateQueries({ queryKey: ["route-lookup"] });
       notify("Configuração de rotas salva com sucesso!");
-    } catch (err) {
-      notify(err.response?.data?.message || "Erro ao salvar rotas.", true);
-    } finally {
-      setSaving(false);
-    }
+    },
+    onError: (err) =>
+      notify(err.response?.data?.message || "Erro ao salvar rotas.", true),
+  });
+
+  const salvarNoBanco = () => {
+    saveRoutesMutation.mutate({
+      dataOperacao,
+      rotas: rotas.map((r) => ({
+        veiculoId: r.veiculo.id,
+        motoristaId: r.motorista?.id || null,
+        horarioPrevisto: r.horarioPrevisto || "18:30",
+        universidadeIds: r.paradas.map((p) => p.universidade.id),
+      })),
+    });
   };
 
   return (
@@ -172,6 +182,13 @@ export const ManageRoutesPage = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 mt-5">
+        {(routesQuery.isError ||
+          universitiesQuery.isError ||
+          driversQuery.isError) && (
+          <p className="text-sm text-red-600">
+            Erro ao carregar os dados para configurar as rotas.
+          </p>
+        )}
         {rotas.map((r) => (
           <div key={r.veiculo.id} className="card flex flex-col gap-2.5">
             <div className="mb-1 flex items-center justify-between">
@@ -317,7 +334,12 @@ export const ManageRoutesPage = () => {
           </button>
         </div>
       </div>
-      <SubmitButton onClick={salvarNoBanco} disabled={saving} text="Salvar configuração do dia" loading={saving} />
+      <SubmitButton
+        onClick={salvarNoBanco}
+        disabled={saveRoutesMutation.isPending}
+        text="Salvar configuração do dia"
+        loading={saveRoutesMutation.isPending}
+      />
 
       {toast && (
         <div
