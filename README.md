@@ -10,8 +10,8 @@ Implementação Full Stack (**React + JavaScript + Tailwind CSS + Vite** no Fron
 - **Java 21** + **Spring Boot 3.3.5**
 - **Spring Security + JWT (JWS / HMAC-SHA256)** com autenticação *stateless* e controle de acesso baseado em roles.
 - **Spring Data JPA / Hibernate** + **PostgreSQL 16**.
-- **Bean Validation e tratamento padronizado de exceções.
-- **Carga inicial automática criando usuários de demonstração, universidades, veículos, rotas para hoje e amanhã, avisos e ocorrências.
+- **Bean Validation** e tratamento padronizado de exceções.
+- **Carga inicial** automática criando usuários de demonstração, universidades, veículos, rotas para hoje e amanhã, avisos e ocorrências.
 
 ### Frontend (`./frontend`)
 - **React 18** + **JavaScript (ES2022)** + **Tailwind CSS** + **Vite**
@@ -68,4 +68,4 @@ Acesse http://localhost:5173.
 3. **Fluxo 3 — Gerenciamento de Cadastros:** CRUD completo de Universitários (vinculados à instituição), Universidades, Veículos (com placa e capacidade) e Motoristas.
 4. **Fluxo 4 — Configuração Dinâmica e Redistribuição de Rotas:** Seleção por data de operação; reordenação de paradas (`↑` `↓`), atribuição/redistribuição transacional garantindo que uma universidade não fique duplicada em dois ônibus na mesma data, sem alterar o histórico de outros dias.
 5. **Fluxo 5 — Publicação e Consulta de Avisos:** Publicação e exclusão de comunicados pelo Administrador com autor e data, visíveis a Universitários e Motoristas.
-6. **Fluxo 6 — Registro de Ocorrências e Suporte:** Motoristas registram ocorrências operacionais vinculadas ao veículo.
+6. **Fluxo 6 — Registro de Ocorrências:** Motoristas registram ocorrências operacionais vinculadas ao veículo.
