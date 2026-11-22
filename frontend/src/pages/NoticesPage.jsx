@@ -21,6 +21,10 @@ export const NoticesPage = () => {
     carregar();
   }, []);
 
+  useEffect(() => {
+    console.log(loading);
+  }, [loading]);
+
   const publicar = async (e) => {
     e.preventDefault();
     setLoading(true);
