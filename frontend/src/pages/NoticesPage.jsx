@@ -13,10 +13,8 @@ export const NoticesPage = () => {
   const [loading, setLoading] = useState(false);
 
   const carregar = async () => {
-    setLoading(true);
     const { data } = await api.get("/avisos");
     setAvisos(data);
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -25,10 +23,12 @@ export const NoticesPage = () => {
 
   const publicar = async (e) => {
     e.preventDefault();
+    setLoading(true);
     await api.post("/avisos", { titulo, mensagem });
     setTitulo("");
     setMensagem("");
     carregar();
+    setLoading(false);
   };
 
   const excluir = async (id) => {
@@ -48,8 +48,7 @@ export const NoticesPage = () => {
         </p>
       </div>
 
-      <div
-      >
+      <div>
         <div className="card">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="text-base font-bold">Avisos Publicados</h3>
