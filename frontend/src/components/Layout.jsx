@@ -46,11 +46,19 @@ export const Layout = () => {
             <Bus size={20} />
           </div>
 
-          <div className="text-sm font-bold leading-snug text-nowrap">
-            Transporte Universitário
-            <span className="mt-[3px] block text-[10px] font-medium tracking-[0.08em] text-[#AAA2AD]">
-              UNIFACIMP WYDEN
-            </span>
+          <div className="text-sm font-bold leading-snug text-nowrap flex items-center justify-between w-full">
+            <div className="flex flex-col">
+              <p>Transporte Universitário</p>
+              <span className="mt-[3px] block text-[10px] font-medium tracking-[0.08em] text-[#AAA2AD]">
+                UNIFACIMP WYDEN
+              </span>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 md:hidden rounded-sm border border-[#403A46] bg-transparent px-2 py-2 text-[#BEB5BF] hover:bg-[#19171E] hover:text-[#F0E8DC] "
+            >
+              <LogOut size={16} />
+            </button>
           </div>
         </div>
 
@@ -122,7 +130,7 @@ export const Layout = () => {
 
           <button
             onClick={handleLogout}
-            className="flex w-full items-center gap-2 rounded-sm border border-[#403A46] bg-transparent px-2 py-2 text-left text-xs text-[#BEB5BF] hover:bg-[#19171E] hover:text-[#F0E8DC]"
+            className="flex w-full items-center gap-2 rounded-sm border border-[#403A46] bg-transparent px-2 py-2 text-left text-xs text-[#BEB5BF] hover:bg-[#19171E] hover:text-[#F0E8DC] "
           >
             <LogOut size={16} />
             Sair da conta
