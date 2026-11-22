@@ -11,6 +11,7 @@ export const CalendarPage = () => {
   const [data, setData] = useState(new Date().toISOString().split("T")[0]);
   const [descricao, setDescricao] = useState("");
   const [tipo, setTipo] = useState("DIA_LETIVO");
+  const [loading, setLoading] = useState(false);
 
   const carregar = async () => {
     const res = await api.get("/calendario");
@@ -23,8 +24,10 @@ export const CalendarPage = () => {
 
   const adicionar = async (e) => {
     e.preventDefault();
+    setLoading(true);
     await api.post("/calendario", { data, descricao, tipo });
     setDescricao("");
+    setLoading(false);
     carregar();
   };
 
@@ -133,7 +136,7 @@ export const CalendarPage = () => {
                   placeholder="Ex.: Semana de provas finais"
                 />
               </div>
-              <SubmitButton text="Salvar no Calendário" />
+              <SubmitButton text="Salvar no Calendário" loading={loading} />
             </form>
           </div>
         )}

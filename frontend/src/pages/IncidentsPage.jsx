@@ -13,6 +13,7 @@ export const IncidentsPage = () => {
   const [tipo, setTipo] = useState("Atraso");
   const [descricao, setDescricao] = useState("");
   const [veiculoId, setVeiculoId] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const carregar = async () => {
     const [ocRes, vRes] = await Promise.all([
@@ -32,12 +33,14 @@ export const IncidentsPage = () => {
 
   const registrar = async (e) => {
     e.preventDefault();
+    setLoading(true);
     await api.post("/ocorrencias", {
       tipo,
       descricao,
       veiculoId: veiculoId ? veiculoId : null,
     });
     setDescricao("");
+    setLoading(false);
     carregar();
   };
 
@@ -140,7 +143,7 @@ export const IncidentsPage = () => {
                   placeholder="Informe o ocorrido e o impacto previsto..."
                 />
               </div>
-              <SubmitButton text="Registrar Ocorrência" />
+              <SubmitButton text="Registrar Ocorrência" loading={loading} />
             </form>
           </div>
         )}

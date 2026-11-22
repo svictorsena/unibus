@@ -10,10 +10,13 @@ export const NoticesPage = () => {
   const [avisos, setAvisos] = useState([]);
   const [titulo, setTitulo] = useState("");
   const [mensagem, setMensagem] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const carregar = async () => {
+    setLoading(true);
     const { data } = await api.get("/avisos");
     setAvisos(data);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -115,7 +118,7 @@ export const NoticesPage = () => {
                   placeholder="Descreva os detalhes do aviso..."
                 />
               </div>
-              <SubmitButton text="Publicar Aviso" />
+              <SubmitButton text="Publicar Aviso" loading={loading} />
             </form>
           </div>
         )}

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../services/api";
+import SubmitButton from "../components/SubmitButton";
 
 export const ManageRoutesPage = () => {
   const hojeISO = new Date().toISOString().split("T")[0];
@@ -107,7 +108,7 @@ export const ManageRoutesPage = () => {
 
   const salvarNoBanco = async () => {
     setSaving(true);
-    
+
     try {
       const payload = {
         dataOperacao,
@@ -307,18 +308,16 @@ export const ManageRoutesPage = () => {
           >
             Aplicar redistribuição
           </button>
-          <button type="button" className="bg-[#111114] border text-slate-200 border-[#403A46] text-sm font-bold px-4 py-2 hover:bg-[#302C36] hover:border-[#5A5360]" onClick={removerDaData}>
+          <button
+            type="button"
+            className="bg-[#111114] border text-slate-200 border-[#403A46] text-sm font-bold px-4 py-2 hover:bg-[#302C36] hover:border-[#5A5360]"
+            onClick={removerDaData}
+          >
             Retirar da rota do dia
           </button>
         </div>
       </div>
-      <button
-        className="bg-[#FFD84A] px-4 py-3 text-md font-bold text-slate-950 transition hover:bg-[#e6c200] w-full mt-5"
-        onClick={salvarNoBanco}
-        disabled={saving}
-      >
-        {saving ? "Salvando..." : "Salvar configuração do dia"}
-      </button>
+      <SubmitButton onClick={salvarNoBanco} disabled={saving} text="Salvar configuração do dia" loading={saving} />
 
       {toast && (
         <div
