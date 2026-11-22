@@ -10,10 +10,28 @@ import { NoticesPage } from './pages/NoticesPage';
 import { IncidentsPage } from './pages/IncidentsPage';
 import { CalendarPage } from './pages/CalendarPage';
 import { ProfileSettings } from './pages/ProfileSettings';
+import { Skeleton } from './components/Skeleton';
 
 const ProtectedRoute = ({ children, roles }) => {
   const { user, loading } = useAuth();
-  if (loading) return <div className="p-10 text-slate-600">Carregando sessão...</div>;
+  if (loading) {
+    return (
+      <div className="flex min-h-screen">
+        <div className="hidden w-[260px] shrink-0 space-y-4 border-r border-[#29252F] bg-[#08070B] p-5 md:block">
+          <Skeleton className="h-9 w-48" />
+          {[0, 1, 2, 3].map((item) => (
+            <Skeleton key={item} className="h-9 w-full" />
+          ))}
+        </div>
+        <div className="flex-1 space-y-4 p-5 md:p-8">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-4 w-96 max-w-full" />
+          <Skeleton className="mt-8 h-56 w-full" />
+          <Skeleton className="h-40 w-full" />
+        </div>
+      </div>
+    );
+  }
   if (!user) return <Navigate to="/login" replace />;
   if (roles && !roles.includes(user.perfil)) return <Navigate to="/dashboard" replace />;
   return children;

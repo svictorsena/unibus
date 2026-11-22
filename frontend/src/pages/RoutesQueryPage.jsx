@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
-import DotsJumping from "../components/DotsJumping";
 import { RefreshButton } from "../components/RefreshButton";
+import { Skeleton } from "../components/Skeleton";
 
 export const RoutesQueryPage = () => {
   const { user } = useAuth();
@@ -59,8 +59,8 @@ export const RoutesQueryPage = () => {
       ? manualRouteQuery.data
       : automaticRouteQuery.data;
   const loading =
-    (mode === "manual" && consultaManual && manualRouteQuery.isFetching) ||
-    (mode === "auto" && automaticRouteQuery.isFetching);
+    (mode === "manual" && consultaManual && manualRouteQuery.isLoading) ||
+    (mode === "auto" && automaticRouteQuery.isLoading);
 
   const consultarManual = (e) => {
     e.preventDefault();
@@ -129,17 +129,21 @@ export const RoutesQueryPage = () => {
               <label className="mb-1.5 block text-xs font-bold text-slate-700">
                 Universidade
               </label>
-              <select
-                className="min-w-full pb-[15px] cursor-pointer rounded-sm border border-[#403A46] bg-[#111114] p-3 text-sm text-slate-600 transition hover:border-[#5A5360] focus:border-[#FFD84A] focus:outline-none"
-                value={universidadeId}
-                onChange={(e) => setUniversidadeId(e.target.value)}
-              >
-                {universidades.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.nome}
-                  </option>
-                ))}
-              </select>
+              {universitiesQuery.isLoading ? (
+                <Skeleton className="h-[46px] w-full" />
+              ) : (
+                <select
+                  className="min-w-full pb-[15px] cursor-pointer rounded-sm border border-[#403A46] bg-[#111114] p-3 text-sm text-slate-600 transition hover:border-[#5A5360] focus:border-[#FFD84A] focus:outline-none"
+                  value={universidadeId}
+                  onChange={(e) => setUniversidadeId(e.target.value)}
+                >
+                  {universidades.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.nome}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
           </div>
           <button
@@ -158,11 +162,28 @@ export const RoutesQueryPage = () => {
         </p>
       )}
       {loading ? (
-        <div className="card">
-          <p className="text-sm text-slate-600">
-            Buscando programação
-            <DotsJumping />
-          </p>
+        <div className="page-layout query-result-layout mb-5">
+          <div className="card space-y-4">
+            <Skeleton className="h-5 w-44" />
+            <div className="flex items-center gap-3.5">
+              <Skeleton className="h-10 w-10" />
+              <div className="space-y-2">
+                <Skeleton className="h-6 w-40" />
+                <Skeleton className="h-4 w-52" />
+              </div>
+            </div>
+            <Skeleton className="h-28 w-full" />
+            <Skeleton className="h-5 w-56" />
+            {[0, 1, 2].map((item) => (
+              <Skeleton key={item} className="h-14 w-full" />
+            ))}
+          </div>
+          <div className="card space-y-4">
+            <Skeleton className="h-5 w-48" />
+            {[0, 1, 2].map((item) => (
+              <Skeleton key={item} className="h-4 w-full" />
+            ))}
+          </div>
         </div>
       ) : rotas && rotas.length > 0 ? (
         rotas.map((rota, index) => (

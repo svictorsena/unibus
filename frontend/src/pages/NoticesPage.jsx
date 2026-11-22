@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import { RefreshButton } from "../components/RefreshButton";
+import { Skeleton } from "../components/Skeleton";
 import SubmitButton from "../components/SubmitButton";
 
 export const NoticesPage = () => {
@@ -59,7 +60,11 @@ export const NoticesPage = () => {
           <div className="mb-3 flex items-center justify-between">
             <h3 className="text-base font-bold">Avisos Publicados</h3>
             <span className="rounded-sm bg-[#FFD84A] px-3 py-1 text-xs font-bold text-slate-950">
-              {avisos.length} aviso(s)
+              {noticesQuery.isLoading ? (
+                <Skeleton className="h-4 w-6" />
+              ) : (
+                `${avisos.length} aviso(s)`
+              )}
             </span>
           </div>
           {(noticesQuery.isError ||
@@ -69,7 +74,17 @@ export const NoticesPage = () => {
               Erro ao carregar ou atualizar os avisos.
             </p>
           )}
-          {avisos.length === 0 ? (
+          {noticesQuery.isLoading ? (
+            <div className="divide-y divide-slate-200">
+              {[0, 1, 2].map((item) => (
+                <div key={item} className="space-y-2 py-3.5">
+                  <Skeleton className="h-4 w-48" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-3 w-36" />
+                </div>
+              ))}
+            </div>
+          ) : avisos.length === 0 ? (
             <p className="text-sm text-slate-600">
               Nenhum aviso publicado no momento.
             </p>

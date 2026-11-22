@@ -2,7 +2,24 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "../services/api";
 import { RefreshButton } from "../components/RefreshButton";
+import { Skeleton } from "../components/Skeleton";
 import SubmitButton from "../components/SubmitButton";
+
+const TableSkeleton = ({ columns }) => (
+  <>
+    {[0, 1, 2].map((row) => (
+      <tr key={row}>
+        {Array.from({ length: columns }, (_, column) => (
+          <td key={column} className="p-3">
+            <Skeleton
+              className={`h-4 ${column === 0 ? "w-3/4" : "w-1/2"}`}
+            />
+          </td>
+        ))}
+      </tr>
+    ))}
+  </>
+);
 
 export const RegistrationsPage = () => {
   const queryClient = useQueryClient();
@@ -208,7 +225,9 @@ export const RegistrationsPage = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
-                  {universitarios.map((u) => (
+                  {studentsQuery.isLoading ? (
+                    <TableSkeleton columns={4} />
+                  ) : universitarios.map((u) => (
                     <tr key={u.id}>
                       <td className="p-3">
                         <strong>{u.nome}</strong>
@@ -240,7 +259,9 @@ export const RegistrationsPage = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
-                  {universidades.map((u) => (
+                  {universitiesQuery.isLoading ? (
+                    <TableSkeleton columns={3} />
+                  ) : universidades.map((u) => (
                     <tr key={u.id}>
                       <td className="p-3 font-bold">{u.nome}</td>
                       <td className="p-3">{u.localizacao}</td>
@@ -269,7 +290,9 @@ export const RegistrationsPage = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
-                  {veiculos.map((v) => (
+                  {vehiclesQuery.isLoading ? (
+                    <TableSkeleton columns={4} />
+                  ) : veiculos.map((v) => (
                     <tr key={v.id}>
                       <td className="p-3 font-bold">{v.nome}</td>
                       <td className="p-3">
@@ -301,7 +324,9 @@ export const RegistrationsPage = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
-                  {motoristas.map((m) => (
+                  {driversQuery.isLoading ? (
+                    <TableSkeleton columns={4} />
+                  ) : motoristas.map((m) => (
                     <tr key={m.id}>
                       <td className="p-3 font-bold">{m.nome}</td>
                       <td className="p-3">{m.email}</td>
@@ -358,20 +383,27 @@ export const RegistrationsPage = () => {
                   <label className="mb-1 block text-xs font-bold text-slate-700">
                     Universidade vinculada
                   </label>
-                  <select
-                    required
-                    className="min-w-full cursor-pointer rounded-sm border border-[#403A46] bg-[#111114] p-3 text-sm text-slate-600 transition hover:border-[#5A5360] focus:border-[#FFD84A] focus:outline-none"
-                    value={uniForm.universidadeId}
-                    onChange={(e) =>
-                      setUniForm({ ...uniForm, universidadeId: e.target.value })
-                    }
-                  >
-                    {universidades.map((u) => (
-                      <option key={u.id} value={u.id}>
-                        {u.nome}
-                      </option>
-                    ))}
-                  </select>
+                  {universitiesQuery.isLoading ? (
+                    <Skeleton className="h-[46px] w-full" />
+                  ) : (
+                    <select
+                      required
+                      className="min-w-full cursor-pointer rounded-sm border border-[#403A46] bg-[#111114] p-3 text-sm text-slate-600 transition hover:border-[#5A5360] focus:border-[#FFD84A] focus:outline-none"
+                      value={uniForm.universidadeId}
+                      onChange={(e) =>
+                        setUniForm({
+                          ...uniForm,
+                          universidadeId: e.target.value,
+                        })
+                      }
+                    >
+                      {universidades.map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {u.nome}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-bold text-slate-700">
@@ -475,20 +507,27 @@ export const RegistrationsPage = () => {
                   <label className="mb-1 block text-xs font-bold text-slate-700">
                     Motorista padrão (opcional)
                   </label>
-                  <select
-                    className="min-w-full cursor-pointer rounded-sm border border-[#403A46] bg-[#111114] p-3 text-sm text-slate-600 transition hover:border-[#5A5360] focus:border-[#FFD84A] focus:outline-none"
-                    value={veicForm.motoristaId}
-                    onChange={(e) =>
-                      setVeicForm({ ...veicForm, motoristaId: e.target.value })
-                    }
-                  >
-                    <option value="">Nenhum</option>
-                    {motoristas.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.nome}
-                      </option>
-                    ))}
-                  </select>
+                  {driversQuery.isLoading ? (
+                    <Skeleton className="h-[46px] w-full" />
+                  ) : (
+                    <select
+                      className="min-w-full cursor-pointer rounded-sm border border-[#403A46] bg-[#111114] p-3 text-sm text-slate-600 transition hover:border-[#5A5360] focus:border-[#FFD84A] focus:outline-none"
+                      value={veicForm.motoristaId}
+                      onChange={(e) =>
+                        setVeicForm({
+                          ...veicForm,
+                          motoristaId: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="">Nenhum</option>
+                      {motoristas.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.nome}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
               </>
             )}

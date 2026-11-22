@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "../services/api";
 import { RefreshButton } from "../components/RefreshButton";
+import { Skeleton } from "../components/Skeleton";
 import SubmitButton from "../components/SubmitButton";
 
 export const ManageRoutesPage = () => {
@@ -34,6 +35,9 @@ export const ManageRoutesPage = () => {
   });
   const universidades = universitiesQuery.data || [];
   const motoristas = driversQuery.data || [];
+  const routesLoading =
+    routesQuery.isLoading ||
+    (Boolean(routesQuery.data?.length) && rotas.length === 0);
 
   useEffect(() => {
     if (!routesQuery.data) return;
@@ -191,7 +195,19 @@ export const ManageRoutesPage = () => {
             Erro ao carregar os dados para configurar as rotas.
           </p>
         )}
-        {rotas.map((r) => (
+        {routesLoading
+          ? [0, 1, 2].map((item) => (
+              <div key={item} className="card flex flex-col gap-3">
+                <Skeleton className="mb-1 h-5 w-40" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="mt-2 h-3 w-28" />
+                <Skeleton className="h-[46px] w-full" />
+                <Skeleton className="h-3 w-32" />
+                <Skeleton className="h-[46px] w-full" />
+              </div>
+            ))
+          : rotas.map((r) => (
           <div key={r.veiculo.id} className="card flex flex-col gap-2.5">
             <div className="mb-1 flex items-center justify-between">
               <h3 className="text-base font-bold">🚌 {r.veiculo.nome}</h3>
@@ -260,20 +276,24 @@ export const ManageRoutesPage = () => {
               <label className="mb-1 block text-xs font-bold text-slate-700">
                 Motorista escalado
               </label>
-              <select
-                className="min-w-full rounded-sm cursor-pointer border border-[#403A46] bg-[#111114] p-3 text-sm text-slate-600 transition hover:border-[#5A5360] focus:border-[#FFD84A] focus:outline-none"
-                value={r.motorista?.id || ""}
-                onChange={(e) =>
-                  atualizarMotorista(r.veiculo.id, e.target.value)
-                }
-              >
-                <option value="">Sem motorista definido</option>
-                {motoristas.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.nome}
-                  </option>
-                ))}
-              </select>
+              {driversQuery.isLoading ? (
+                <Skeleton className="h-[46px] w-full" />
+              ) : (
+                <select
+                  className="min-w-full rounded-sm cursor-pointer border border-[#403A46] bg-[#111114] p-3 text-sm text-slate-600 transition hover:border-[#5A5360] focus:border-[#FFD84A] focus:outline-none"
+                  value={r.motorista?.id || ""}
+                  onChange={(e) =>
+                    atualizarMotorista(r.veiculo.id, e.target.value)
+                  }
+                >
+                  <option value="">Sem motorista definido</option>
+                  {motoristas.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.nome}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
           </div>
         ))}
@@ -290,33 +310,41 @@ export const ManageRoutesPage = () => {
             <label className="mb-1.5 block text-xs font-bold text-slate-700">
               Universidade
             </label>
-            <select
-              className="min-w-full rounded-sm cursor-pointer border border-[#403A46] bg-[#111114] p-3 text-sm text-slate-600 transition hover:border-[#5A5360] focus:border-[#FFD84A] focus:outline-none"
-              value={selectedUni}
-              onChange={(e) => setSelectedUni(e.target.value)}
-            >
-              {universidades.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.nome}
-                </option>
-              ))}
-            </select>
+            {universitiesQuery.isLoading ? (
+              <Skeleton className="h-[46px] w-full" />
+            ) : (
+              <select
+                className="min-w-full rounded-sm cursor-pointer border border-[#403A46] bg-[#111114] p-3 text-sm text-slate-600 transition hover:border-[#5A5360] focus:border-[#FFD84A] focus:outline-none"
+                value={selectedUni}
+                onChange={(e) => setSelectedUni(e.target.value)}
+              >
+                {universidades.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.nome}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
           <div>
             <label className="mb-1.5 block text-xs font-bold text-slate-700">
               Veículo de destino
             </label>
-            <select
-              className="min-w-full rounded-sm cursor-pointer border border-[#403A46] bg-[#111114] p-3 text-sm text-slate-600 transition hover:border-[#5A5360] focus:border-[#FFD84A] focus:outline-none"
-              value={selectedVeh}
-              onChange={(e) => setSelectedVeh(e.target.value)}
-            >
-              {rotas.map((r) => (
-                <option key={r.veiculo.id} value={r.veiculo.id}>
-                  {r.veiculo.nome} ({r.veiculo.placa})
-                </option>
-              ))}
-            </select>
+            {routesLoading ? (
+              <Skeleton className="h-[46px] w-full" />
+            ) : (
+              <select
+                className="min-w-full rounded-sm cursor-pointer border border-[#403A46] bg-[#111114] p-3 text-sm text-slate-600 transition hover:border-[#5A5360] focus:border-[#FFD84A] focus:outline-none"
+                value={selectedVeh}
+                onChange={(e) => setSelectedVeh(e.target.value)}
+              >
+                {rotas.map((r) => (
+                  <option key={r.veiculo.id} value={r.veiculo.id}>
+                    {r.veiculo.nome} ({r.veiculo.placa})
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
         </div>
         <div className="flex flex-wrap gap-2.5">

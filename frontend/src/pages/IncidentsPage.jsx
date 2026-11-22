@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import { AlertTriangle } from "lucide-react";
 import { RefreshButton } from "../components/RefreshButton";
+import { Skeleton } from "../components/Skeleton";
 import SubmitButton from "../components/SubmitButton";
 
 export const IncidentsPage = () => {
@@ -70,16 +71,30 @@ export const IncidentsPage = () => {
         <div className="card">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="text-base font-bold">Histórico de Ocorrências</h3>
-            <span className="rounded-sm bg-[#FFD84A] px-3 py-1 text-xs font-bold text-slate-950">
-              {ocorrencias.length} registro(s)
-            </span>
+            <div className="rounded-sm bg-[#FFD84A] px-3 py-1 text-xs font-bold text-slate-950">
+              {incidentsQuery.isLoading ? (
+                <Skeleton className="h-4 w-6" />
+              ) : (
+                `${ocorrencias.length} registro(s)`
+              )}
+            </div>
           </div>
           {(incidentsQuery.isError || vehiclesQuery.isError) && (
             <p className="text-sm text-red-600">
               Erro ao carregar as ocorrências ou os veículos.
             </p>
           )}
-          {ocorrencias.length === 0 ? (
+          {incidentsQuery.isLoading ? (
+            <div className="divide-y divide-slate-200">
+              {[0, 1, 2].map((item) => (
+                <div key={item} className="space-y-2 py-3.5">
+                  <Skeleton className="h-4 w-48" />
+                  <Skeleton className="h-4 w-4/5" />
+                  <Skeleton className="h-3 w-32" />
+                </div>
+              ))}
+            </div>
+          ) : ocorrencias.length === 0 ? (
             <p className="text-sm text-slate-600">
               Nenhuma ocorrência registrada até o momento.
             </p>
@@ -130,17 +145,21 @@ export const IncidentsPage = () => {
                 <label className="mb-1 block text-xs font-bold text-slate-700">
                   Veículo envolvido
                 </label>
-                <select
-                  className="min-w-full cursor-pointer rounded-sm border border-[#403A46] bg-[#111114] p-3 text-sm text-slate-600 transition hover:border-[#5A5360] focus:border-[#FFD84A] focus:outline-none"
-                  value={veiculoId}
-                  onChange={(e) => setVeiculoId(e.target.value)}
-                >
-                  {veiculos.map((v) => (
-                    <option key={v.id} value={v.id}>
-                      {v.nome} ({v.placa})
-                    </option>
-                  ))}
-                </select>
+                {vehiclesQuery.isLoading ? (
+                  <Skeleton className="h-[46px] w-full" />
+                ) : (
+                  <select
+                    className="min-w-full cursor-pointer rounded-sm border border-[#403A46] bg-[#111114] p-3 text-sm text-slate-600 transition hover:border-[#5A5360] focus:border-[#FFD84A] focus:outline-none"
+                    value={veiculoId}
+                    onChange={(e) => setVeiculoId(e.target.value)}
+                  >
+                    {veiculos.map((v) => (
+                      <option key={v.id} value={v.id}>
+                        {v.nome} ({v.placa})
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
               <div>
                 <label className="mb-1 block text-xs font-bold text-slate-700">

@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import { RefreshButton } from "../components/RefreshButton";
+import { Skeleton } from "../components/Skeleton";
 import SubmitButton from "../components/SubmitButton";
 
 export const CalendarPage = () => {
@@ -61,7 +62,14 @@ export const CalendarPage = () => {
             <p className="text-sm text-red-600">Erro ao carregar o calendário.</p>
           )}
           <div className="divide-y divide-slate-200">
-            {eventos.map((ev) => (
+            {eventosQuery.isLoading
+              ? [0, 1, 2].map((item) => (
+                  <div key={item} className="space-y-2 py-3">
+                    <Skeleton className="h-4 w-36" />
+                    <Skeleton className="h-3 w-56 max-w-full" />
+                  </div>
+                ))
+              : eventos.map((ev) => (
               <div
                 key={ev.id}
                 className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
@@ -94,7 +102,7 @@ export const CalendarPage = () => {
                   </button>
                 )}
               </div>
-            ))}
+                ))}
           </div>
         </div>
 

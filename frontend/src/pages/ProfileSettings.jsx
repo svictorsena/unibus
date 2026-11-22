@@ -3,6 +3,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import { RefreshButton } from "../components/RefreshButton";
+import { Skeleton } from "../components/Skeleton";
 import SubmitButton from "../components/SubmitButton";
 import { Eye, EyeClosed } from "lucide-react";
 
@@ -194,24 +195,28 @@ export const ProfileSettings = () => {
                   <label className="mb-1 block text-xs font-bold text-slate-700">
                     Universidade
                   </label>
-                  <select
-                    required
-                    className={`${inputClass} cursor-pointer`}
-                    value={form.universidadeId}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        universidadeId: e.target.value,
-                      })
-                    }
-                  >
-                    <option value="">Selecione sua universidade</option>
-                    {universidades.map((uni) => (
-                      <option key={uni.id} value={uni.id}>
-                        {uni.nome}
-                      </option>
-                    ))}
-                  </select>
+                  {universitiesQuery.isLoading ? (
+                    <Skeleton className="h-[46px] w-full" />
+                  ) : (
+                    <select
+                      required
+                      className={`${inputClass} cursor-pointer`}
+                      value={form.universidadeId}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          universidadeId: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="">Selecione sua universidade</option>
+                      {universidades.map((uni) => (
+                        <option key={uni.id} value={uni.id}>
+                          {uni.nome}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                   {universitiesQuery.isError && (
                     <p className="mt-1 text-sm text-red-600">
                       Erro ao carregar universidades.

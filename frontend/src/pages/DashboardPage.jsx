@@ -4,6 +4,7 @@ import { ArrowRight, Bus, GraduationCap, Route as RouteIcon } from 'lucide-react
 import SectionHeading from '../components/SectionHeading';
 import NoticeList from '../components/NoticeList';
 import { RefreshButton } from '../components/RefreshButton';
+import { Skeleton } from '../components/Skeleton';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
@@ -63,9 +64,72 @@ export const DashboardPage = () => {
     vehiclesQuery.isLoading ||
     universitiesQuery.isLoading ||
     routesQuery.isLoading;
+  const isAdmin = user?.perfil === 'ADMIN';
+  const columnsClass =
+    'grid grid-cols-1 gap-7 lg:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.85fr)]';
 
   if (loading) {
-    return <p className="text-sm text-[#BEB5BF]">Carregando informações...</p>;
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-end">
+          <div className="space-y-2">
+            <Skeleton className="h-3 w-36" />
+            <Skeleton className="h-7 w-52" />
+            <Skeleton className="h-4 w-72 max-w-full" />
+          </div>
+          <div className="flex items-center gap-2">
+            {isAdmin && <Skeleton className="h-9 w-36" />}
+            <RefreshButton className="hidden md:flex" />
+          </div>
+        </div>
+
+        {isAdmin ? (
+          <>
+            <div className="grid grid-cols-1 border border-[#39343F] bg-[#19171E] sm:grid-cols-3">
+              {[0, 1, 2].map((item) => (
+                <div
+                  key={item}
+                  className="flex items-center justify-between border-b border-[#39343F] px-4 py-3 last:border-b-0 sm:border-b-0 sm:border-r"
+                >
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-7 w-8" />
+                </div>
+              ))}
+            </div>
+            <div className={columnsClass}>
+              {[0, 1].map((item) => (
+                <div key={item} className="space-y-4 border-t border-[#39343F]">
+                  <Skeleton className="mt-4 h-5 w-40" />
+                  {[0, 1, 2].map((row) => (
+                    <Skeleton key={row} className="h-12 w-full" />
+                  ))}
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className={columnsClass}>
+            <div className="space-y-4 border border-[#39343F] bg-[#19171E] p-4 sm:p-5">
+              <Skeleton className="h-3 w-40" />
+              <Skeleton className="h-7 w-48" />
+              <Skeleton className="h-4 w-36" />
+              <Skeleton className="h-10 w-28" />
+              <div className="space-y-3 border-t border-[#39343F] pt-4">
+                {[0, 1, 2].map((row) => (
+                  <Skeleton key={row} className="h-10 w-full" />
+                ))}
+              </div>
+            </div>
+            <div className="space-y-4 border-t border-[#39343F]">
+              <Skeleton className="mt-4 h-5 w-32" />
+              {[0, 1, 2].map((row) => (
+                <Skeleton key={row} className="h-16 w-full" />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
   }
 
   if (
@@ -75,23 +139,22 @@ export const DashboardPage = () => {
     routesQuery.isError
   ) {
     return (
-      <p className="text-sm text-red-600">
-        Erro ao carregar as informações do painel.
-      </p>
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-sm text-red-600">
+          Erro ao carregar as informações do painel.
+        </p>
+        <RefreshButton className="hidden md:flex" />
+      </div>
     );
   }
 
   const avisosRecentes = avisos.slice(0, 3);
-  const isAdmin = user?.perfil === 'ADMIN';
 
   const headingDescription = isAdmin
     ? 'Acompanhamento da frota e programação de hoje.'
     : user?.perfil === 'MOTORISTA'
       ? 'Sua programação e avisos da operação.'
       : 'Consulte sua programação e informações do transporte.';
-
-  const columnsClass =
-    'grid grid-cols-1 gap-7 lg:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.85fr)]';
 
   return (
     <div className="space-y-6">
