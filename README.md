@@ -63,9 +63,9 @@ Acesse http://localhost:5173.
 
 ## Cobertura dos Fluxos do MVP e Requisitos
 
-1. **Fluxo 1 — Autenticação e Controle de Acesso:** Login com validação, senha cifrada com `BCrypt`, emissão de JWT e bloqueio de rotas por perfil tanto na API (`@PreAuthorize`) quanto no React Router.
-2. **Fluxo 2 — Consulta de Rotas e Horários:** Aba *"Minha rota"* carrega automaticamente o ônibus, horário previsto e sequência ordenada de universidades para o aluno autenticado; aba *"Consulta manual"* permite filtrar qualquer data e universidade.
-3. **Fluxo 3 — Gerenciamento de Cadastros:** CRUD completo de Universitários (vinculados à instituição), Universidades, Veículos (com placa e capacidade) e Motoristas.
-4. **Fluxo 4 — Configuração Dinâmica e Redistribuição de Rotas:** Seleção por data de operação; reordenação de paradas (`↑` `↓`), atribuição/redistribuição transacional garantindo que uma universidade não fique duplicada em dois ônibus na mesma data, sem alterar o histórico de outros dias.
-5. **Fluxo 5 — Publicação e Consulta de Avisos:** Publicação e exclusão de comunicados pelo Administrador com autor e data, visíveis a Universitários e Motoristas.
-6. **Fluxo 6 — Registro de Ocorrências:** Motoristas registram ocorrências operacionais vinculadas ao veículo.
+**Fluxo 1 — Autenticação e Controle de Acesso:** Login com validação, senha cifrada com `BCrypt`, emissão de JWT e bloqueio de rotas por perfil tanto na API (`@PreAuthorize`) quanto no React Router.
+**Fluxo 2 — Consulta de Rotas e Horários:** Aba *"Minha rota"* carrega automaticamente o ônibus, horário previsto e sequência ordenada de universidades para o aluno autenticado; aba *"Consulta manual"* permite filtrar qualquer data e universidade.
+**Fluxo 3 — Gerenciamento de Cadastros:** CRUD completo de Universitários (vinculados à instituição), Universidades, Veículos (com placa e capacidade) e Motoristas.
+**Fluxo 4 — Configuração Dinâmica e Redistribuição de Rotas:** Seleção por data de operação; reordenação de paradas (`↑` `↓`), atribuição/redistribuição transacional garantindo que uma universidade não fique duplicada em dois ônibus na mesma data, sem alterar o histórico de outros dias.
+**Fluxo 5 — Publicação e Consulta de Avisos:** Publicação e exclusão de comunicados pelo Administrador com autor e data, visíveis a Universitários e Motoristas.
+**Fluxo 6 — Registro de Ocorrências:** Motoristas registram ocorrências operacionais vinculadas ao veículo.
