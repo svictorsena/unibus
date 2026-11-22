@@ -9,6 +9,9 @@ export const RegistrationsPage = () => {
   const [veiculos, setVeiculos] = useState([]);
   const [motoristas, setMotoristas] = useState([]);
   const [toast, setToast] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  
 
   const [uniForm, setUniForm] = useState({
     nome: "",
@@ -54,6 +57,7 @@ export const RegistrationsPage = () => {
 
   const handleCreate = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       if (tab === "universitarios") {
         await api.post("/universitarios", {
@@ -90,8 +94,10 @@ export const RegistrationsPage = () => {
         setMotForm({ nome: "", email: "", telefone: "" });
       }
       await carregarTudo();
+      setLoading(false);
       notify("Registro cadastrado com sucesso!");
     } catch (err) {
+      setLoading(false);
       notify(err.response?.data?.message || "Erro ao cadastrar.", true);
     }
   };
@@ -494,7 +500,7 @@ export const RegistrationsPage = () => {
               </>
             )}
 
-            <SubmitButton text="Salvar cadastro" />
+            <SubmitButton text="Salvar cadastro" loading={loading} />
           </form>
         </div>
       </div>
