@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import DotsJumping from "../components/DotsJumping";
+import { RefreshButton } from "../components/RefreshButton";
 
 export const RoutesQueryPage = () => {
   const { user } = useAuth();
@@ -34,6 +35,8 @@ export const RoutesQueryPage = () => {
       return data || null;
     },
     enabled: mode === "auto",
+    refetchInterval: 60_000,
+    refetchIntervalInBackground: false,
   });
   const manualRouteQuery = useQuery({
     queryKey: [
@@ -48,6 +51,8 @@ export const RoutesQueryPage = () => {
       return data || null;
     },
     enabled: mode === "manual" && Boolean(consultaManual),
+    refetchInterval: 60_000,
+    refetchIntervalInBackground: false,
   });
   const rotas =
     mode === "manual" && consultaManual
@@ -64,17 +69,20 @@ export const RoutesQueryPage = () => {
 
   return (
     <div>
-      <div className="flex flex-col mb-5">
-        <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">
-          {user?.perfil === "MOTORISTA"
-            ? "Itinerário do Motorista"
-            : "Consultar Rotas e Horários"}
-        </h2>
-        <p className="text-sm text-slate-600">
-          {user?.perfil === "MOTORISTA"
-            ? "Confira a sequência de universidades e o horário previsto do seu veículo."
-            : "Visualize sua rota automática de hoje ou pesquise por outra data e instituição."}
-        </p>
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">
+            {user?.perfil === "MOTORISTA"
+              ? "Itinerário do Motorista"
+              : "Consultar Rotas e Horários"}
+          </h2>
+          <p className="text-sm text-slate-600">
+            {user?.perfil === "MOTORISTA"
+              ? "Confira a sequência de universidades e o horário previsto do seu veículo."
+              : "Visualize sua rota automática de hoje ou pesquise por outra data e instituição."}
+          </p>
+        </div>
+        <RefreshButton className="hidden md:flex" />
       </div>
 
       {user?.perfil === "UNIVERSITARIO" && (

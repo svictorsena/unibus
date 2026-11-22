@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
+import { RefreshButton } from "../components/RefreshButton";
 import SubmitButton from "../components/SubmitButton";
 
 export const CalendarPage = () => {
@@ -38,14 +39,17 @@ export const CalendarPage = () => {
 
   return (
     <div>
-      <div className="flex flex-col mb-5">
-        <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">
-          Calendário de Funcionamento
-        </h2>
-        <p className="text-sm text-slate-600">
-          Dias letivos, feriados, recessos e datas com horários especiais do
-          transporte.
-        </p>
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">
+            Calendário de Funcionamento
+          </h2>
+          <p className="text-sm text-slate-600">
+            Dias letivos, feriados, recessos e datas com horários especiais do
+            transporte.
+          </p>
+        </div>
+        <RefreshButton className="hidden md:flex" />
       </div>
 
       <div

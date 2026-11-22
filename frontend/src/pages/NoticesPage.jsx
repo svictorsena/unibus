@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
+import { RefreshButton } from "../components/RefreshButton";
 import SubmitButton from "../components/SubmitButton";
 
 export const NoticesPage = () => {
@@ -15,6 +16,8 @@ export const NoticesPage = () => {
   const noticesQuery = useQuery({
     queryKey: ["notices"],
     queryFn: async () => (await api.get("/avisos")).data,
+    refetchInterval: 60_000,
+    refetchIntervalInBackground: false,
   });
   const createNoticeMutation = useMutation({
     mutationFn: (notice) => api.post("/avisos", notice),
@@ -38,14 +41,17 @@ export const NoticesPage = () => {
 
   return (
     <div>
-      <div className="flex flex-col mb-5">
-        <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">
-          Quadro de Avisos
-        </h2>
-        <p className="text-sm text-slate-600">
-          Avisos oficiais sobre horários, alterações de itinerário e avisos
-          gerais.
-        </p>
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">
+            Quadro de Avisos
+          </h2>
+          <p className="text-sm text-slate-600">
+            Avisos oficiais sobre horários, alterações de itinerário e avisos
+            gerais.
+          </p>
+        </div>
+        <RefreshButton className="hidden md:flex" />
       </div>
 
       <div>

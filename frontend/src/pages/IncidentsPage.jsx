@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import { AlertTriangle } from "lucide-react";
+import { RefreshButton } from "../components/RefreshButton";
 import SubmitButton from "../components/SubmitButton";
 
 export const IncidentsPage = () => {
@@ -17,6 +18,8 @@ export const IncidentsPage = () => {
   const incidentsQuery = useQuery({
     queryKey: ["incidents"],
     queryFn: async () => (await api.get("/ocorrencias")).data,
+    refetchInterval: 60_000,
+    refetchIntervalInBackground: false,
   });
   const vehiclesQuery = useQuery({
     queryKey: ["vehicles"],
@@ -48,14 +51,17 @@ export const IncidentsPage = () => {
 
   return (
     <div>
-      <div className="flex flex-col mb-5">
-        <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">
-          Ocorrências Operacionais
-        </h2>
-        <p className="text-sm text-slate-600">
-          Registro e acompanhamento de atrasos, imprevistos mecânicos ou desvios
-          de rota.
-        </p>
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">
+            Ocorrências Operacionais
+          </h2>
+          <p className="text-sm text-slate-600">
+            Registro e acompanhamento de atrasos, imprevistos mecânicos ou
+            desvios de rota.
+          </p>
+        </div>
+        <RefreshButton className="hidden md:flex" />
       </div>
 
       <div

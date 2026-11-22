@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Bus, GraduationCap, Route as RouteIcon } from 'lucide-react';
 import SectionHeading from '../components/SectionHeading';
 import NoticeList from '../components/NoticeList';
+import { RefreshButton } from '../components/RefreshButton';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
@@ -23,6 +24,8 @@ export const DashboardPage = () => {
   const noticesQuery = useQuery({
     queryKey: ['notices'],
     queryFn: async () => (await api.get('/avisos')).data,
+    refetchInterval: 60_000,
+    refetchIntervalInBackground: false,
   });
   const vehiclesQuery = useQuery({
     queryKey: ['vehicles'],
@@ -45,6 +48,8 @@ export const DashboardPage = () => {
       return (await api.get(endpoint)).data;
     },
     enabled: Boolean(user),
+    refetchInterval: 60_000,
+    refetchIntervalInBackground: false,
   });
 
   const avisos = noticesQuery.data || [];
@@ -101,11 +106,14 @@ export const DashboardPage = () => {
           </p>
         </div>
 
-        {isAdmin && (
-          <Link to="/gerenciar-rotas" className="bg-[#FFD84A] px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-[#e6c200]">
-            Editar programação
-          </Link>
-        )}
+        <div className="flex items-center gap-2">
+          {isAdmin && (
+            <Link to="/gerenciar-rotas" className="bg-[#FFD84A] px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-[#e6c200]">
+              Editar programação
+            </Link>
+          )}
+          <RefreshButton className="hidden md:flex" />
+        </div>
       </div>
 
       {isAdmin ? (

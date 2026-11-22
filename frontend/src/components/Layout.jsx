@@ -12,6 +12,7 @@ import {
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
+import { RefreshButton } from "./RefreshButton";
 
 export const Layout = () => {
   const { user, logout } = useAuth();
@@ -53,12 +54,16 @@ export const Layout = () => {
                 UNIFACIMP WYDEN
               </span>
             </div>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 md:hidden rounded-sm border border-[#403A46] bg-transparent px-2 py-2 text-[#BEB5BF] hover:bg-[#19171E] hover:text-[#F0E8DC] "
-            >
-              <LogOut size={16} />
-            </button>
+            <div className="flex items-center gap-2 md:hidden">
+              <RefreshButton iconOnly />
+              <button
+                onClick={handleLogout}
+                aria-label="Sair da conta"
+                className="grid h-9 w-9 place-items-center rounded-sm border border-[#403A46] bg-transparent p-0 text-[#BEB5BF] hover:bg-[#19171E] hover:text-[#F0E8DC]"
+              >
+                <LogOut size={16} />
+              </button>
+            </div>
           </div>
         </div>
 

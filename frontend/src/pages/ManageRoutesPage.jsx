@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "../services/api";
+import { RefreshButton } from "../components/RefreshButton";
 import SubmitButton from "../components/SubmitButton";
 
 export const ManageRoutesPage = () => {
@@ -143,7 +144,7 @@ export const ManageRoutesPage = () => {
 
   return (
     <div>
-      <div className="flex flex-row items-center justify-between mb-5">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">
             Configuração Dinâmica de Rotas
@@ -153,6 +154,7 @@ export const ManageRoutesPage = () => {
             demanda de cada dia.
           </p>
         </div>
+        <RefreshButton className="hidden md:flex" />
       </div>
 
       <div className="operation-date-panel">

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
+import { RefreshButton } from "../components/RefreshButton";
 import SubmitButton from "../components/SubmitButton";
 import { Eye, EyeClosed } from "lucide-react";
 
@@ -111,13 +112,16 @@ export const ProfileSettings = () => {
 
   return (
     <div>
-      <div className="flex flex-col mb-5">
-        <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">
-          Configurações de Perfil
-        </h2>
-        <p className="text-sm text-slate-600">
-          Visualize e edite as informações do seu perfil.
-        </p>
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">
+            Configurações de Perfil
+          </h2>
+          <p className="text-sm text-slate-600">
+            Visualize e edite as informações do seu perfil.
+          </p>
+        </div>
+        <RefreshButton className="hidden md:flex" />
       </div>
 
       <div className="page-layout">
