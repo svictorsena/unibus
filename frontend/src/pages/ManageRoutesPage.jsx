@@ -368,6 +368,7 @@ export const ManageRoutesPage = () => {
         onClick={salvarNoBanco}
         disabled={saveRoutesMutation.isPending}
         text="Salvar configuração do dia"
+        className="mt-5"
         loading={saveRoutesMutation.isPending}
       />
 

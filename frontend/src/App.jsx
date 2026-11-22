@@ -23,11 +23,12 @@ const ProtectedRoute = ({ children, roles }) => {
             <Skeleton key={item} className="h-9 w-full" />
           ))}
         </div>
-        <div className="flex-1 space-y-4 p-5 md:p-8">
-          <Skeleton className="h-8 w-64" />
-          <Skeleton className="h-4 w-96 max-w-full" />
-          <Skeleton className="mt-8 h-56 w-full" />
-          <Skeleton className="h-40 w-full" />
+        <div className="flex-1 space-y-3 p-4 md:space-y-4 md:p-8">
+          <Skeleton className="h-6 w-40 md:h-8 md:w-64" />
+          <Skeleton className="h-3 w-56 md:h-4 md:w-96" />
+          <Skeleton className="h-10 w-full md:hidden" />
+          <Skeleton className="mt-4 h-24 w-full md:mt-8 md:h-56" />
+          <Skeleton className="h-[60%] w-full md:h-40" />
         </div>
       </div>
     );
